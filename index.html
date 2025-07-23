@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎲 Dice Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f4f4;
+      margin: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .config {
+      margin-bottom: 20px;
+    }
+
+    input[type="number"] {
+      width: 60px;
+      padding: 5px;
+      margin-left: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    #winner {
+      margin-top: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎲 Dice Game</h1>
+
+  <div class="config">
+    <label>Number of Players:
+      <input type="number" id="numPlayers" min="2" max="6" value="2">
+    </label>
+    <label>Number of Rounds:
+      <input type="number" id="numRounds" min="1" max="10" value="3">
+    </label>
+    <br>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <div id="gameArea" style="display: none;">
+    <h2 id="roundTitle"></h2>
+    <button onclick="nextRound()">Next Round</button>
+    <table id="scoreboard"></table>
+    <div id="winner"></div>
+  </div>
+
+  <script>
+    let players = [];
+    let scores = [];
+    let currentRound = 0;
+    let numRounds = 0;
+
+    function startGame() {
+      const numPlayers = parseInt(document.getElementById("numPlayers").value);
+      numRounds = parseInt(document.getElementById("numRounds").value);
+
+      players = Array.from({ length: numPlayers }, (_, i) => `Player ${i + 1}`);
+      scores = Array.from({ length: numPlayers }, () => []);
+
+      currentRound = 0;
+      document.getElementById("gameArea").style.display = "block";
+      document.getElementById("winner").textContent = "";
+      document.querySelector("button[onclick='nextRound()']").textContent = "Next Round";
+      renderTable();
+    }
+
+    function nextRound() {
+      if (currentRound >= numRounds) {
+        declareWinner();
+        return;
+      }
+
+      for (let i = 0; i < players.length; i++) {
+        const roll = Math.floor(Math.random() * 6) + 1;
+        scores[i][currentRound] = roll;
+      }
+
+      currentRound++;
+      renderTable();
+
+      if (currentRound === numRounds) {
+        document.querySelector("button[onclick='nextRound()']").textContent = "Finish Game";
+      }
+    }
+
+    function renderTable() {
+      const table = document.getElementById("scoreboard");
+      table.innerHTML = "";
+
+      // Header
+      let header = "<tr><th>Player</th>";
+      for (let i = 0; i < numRounds; i++) {
+        header += `<th>Round ${i + 1}</th>`;
+      }
+      header += "<th>Total</th></tr>";
+      table.innerHTML += header;
+
+      // Rows
+      for (let i = 0; i < players.length; i++) {
+        let row = `<tr><td>${players[i]}</td>`;
+        let total = 0;
+        for (let j = 0; j < numRounds; j++) {
+          const score = scores[i][j] || "";
+          total += score || 0;
+          row += `<td>${score}</td>`;
+        }
+        row += `<td>${total}</td></tr>`;
+        table.innerHTML += row;
+      }
+
+      document.getElementById("roundTitle").textContent = `Round ${Math.min(currentRound + 1, numRounds)} of ${numRounds}`;
+    }
+
+    function declareWinner() {
+      const totals = scores.map(playerScores => playerScores.reduce((a, b) => a + b, 0));
+      const max = Math.max(...totals);
+      const winners = players.filter((_, i) => totals[i] === max);
+
+      document.getElementById("winner").textContent =
+        `🏆 Winner: ${winners.join(", ")} with ${max} points!`;
+    }
+  </script>
+</body>
+</html>
